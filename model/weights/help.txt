@@ -1,0 +1,1 @@
+This folder will contain a model named "RRDB_ESRGAN_x4.pth" which will be created when the app is started.
