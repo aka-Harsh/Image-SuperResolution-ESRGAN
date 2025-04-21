@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelPerfect - AI Image Enhancement</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-image"></i> PixelPerfect
+            </div>
+            <p class="subtitle">Transform your images with AI-powered enhancement using cutting-edge ESRGAN technology</p>
+            
+            <div class="info-box">
+                <p>This application uses <strong>Enhanced Super-Resolution Generative Adversarial Network (ESRGAN)</strong> to upscale your images by 4x with improved details and clarity.</p>
+            </div>
+        </div>
+        
+        <div class="nav-links">
+            <a href="/" class="nav-link active">
+                <i class="fas fa-image"></i> Single Image
+            </a>
+            <a href="/batch" class="nav-link">
+                <i class="fas fa-images"></i> Batch Processing
+            </a>
+        </div>
+        
+        <div class="app-card">
+            <h2 class="section-title">
+                <i class="fas fa-cloud-upload-alt"></i> Upload Image
+            </h2>
+            
+            <div class="upload-area" id="upload-area">
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <h3>Drag & Drop your image here</h3>
+                <p>or</p>
+                <form id="upload-form" enctype="multipart/form-data">
+                    <input type="file" id="image-input" name="image" accept="image/*">
+                    <label for="image-input" class="upload-btn">
+                        Choose Image
+                    </label>
+                </form>
+                <p class="mt-20">Supported formats: JPG, PNG, GIF</p>
+            </div>
+        </div>
+        
+        <div class="preview-section app-card" id="preview-section">
+            <h2 class="section-title">
+                <i class="fas fa-images"></i> Image Enhancement
+            </h2>
+            
+            <div class="image-container">
+                <div class="image-box">
+                    <div class="image-header">
+                        <h3><i class="fas fa-image"></i> Original Image</h3>
+                    </div>
+                    <div class="image-content">
+                        <div class="image-wrapper">
+                            <img id="original-image" src="" alt="Original Image">
+                        </div>
+                        <div class="image-details" id="original-details">
+                            <!-- Details will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="image-box" id="enhanced-container">
+                    <div class="image-header">
+                        <h3><i class="fas fa-magic"></i> Enhanced Image</h3>
+                    </div>
+                    <div class="image-content">
+                        <div class="image-wrapper">
+                            <img id="enhanced-image" src="" alt="Enhanced Image">
+                        </div>
+                        <div class="image-details" id="enhanced-details">
+                            <!-- Details will be populated by JavaScript -->
+                        </div>
+                        <div class="flex justify-center gap-10 mt-20">
+                            <a id="download-link" class="action-button" download>
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                            <button id="compare-btn" class="action-button secondary">
+                                <i class="fas fa-exchange-alt"></i> Compare
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="enhance-button" class="enhance-button">
+                <i class="fas fa-magic"></i> Enhance Image
+            </button>
+            
+            <div id="rating-section" class="rating-section">
+                <h3>How satisfied are you with the enhancement?</h3>
+                <div class="rating-container">
+                    <div class="stars">
+                        <i class="fas fa-star star" data-rating="1"></i>
+                        <i class="fas fa-star star" data-rating="2"></i>
+                        <i class="fas fa-star star" data-rating="3"></i>
+                        <i class="fas fa-star star" data-rating="4"></i>
+                        <i class="fas fa-star star" data-rating="5"></i>
+                    </div>
+                    <button id="submit-rating">
+                        Submit Rating
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="status-message" class="status-message"></div>
+    </div>
+    
+    <div class="loading-spinner" id="loading-spinner">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
