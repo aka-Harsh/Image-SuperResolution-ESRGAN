@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelPerfect - Batch Image Enhancement</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-images"></i> PixelPerfect
+            </div>
+            <p class="subtitle">Transform multiple images at once with AI-powered batch enhancement</p>
+            
+            <div class="info-box">
+                <p>This page allows you to enhance multiple images at once using <strong>ESRGAN technology</strong>. Provide a folder path on the server containing images, and the enhanced versions will be saved to the output folder.</p>
+            </div>
+        </div>
+        
+        <div class="nav-links">
+            <a href="/" class="nav-link">
+                <i class="fas fa-image"></i> Single Image
+            </a>
+            <a href="/batch" class="nav-link active">
+                <i class="fas fa-images"></i> Batch Processing
+            </a>
+        </div>
+        
+        <div class="app-card batch-section">
+            <h2 class="section-title">
+                <i class="fas fa-folder-open"></i> Batch Process Images
+            </h2>
+            
+            <form id="batch-form">
+                <div class="form-group">
+                    <label for="input-folder">
+                        <i class="fas fa-folder-open"></i> Input Folder Path:
+                    </label>
+                    <input type="text" id="input-folder" name="input-folder" placeholder="/path/to/input/folder" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="output-folder">
+                        <i class="fas fa-folder-plus"></i> Output Folder Path (optional):
+                    </label>
+                    <input type="text" id="output-folder" name="output-folder" placeholder="static/batch_output">
+                    <p class="form-help">If left blank, enhanced images will be saved to static/batch_output</p>
+                </div>
+                
+                <div class="center">
+                    <button type="submit" id="process-button" class="enhance-button">
+                        <i class="fas fa-magic"></i> Process Images
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="app-card results-section" id="results-section" style="display: none;">
+            <h2 class="section-title">
+                <i class="fas fa-chart-bar"></i> Processing Results
+            </h2>
+            
+            <div class="stats-container">
+                <div class="stat-box">
+                    <h3>Total Images</h3>
+                    <p id="total-images">0</p>
+                </div>
+                <div class="stat-box">
+                    <h3>Successfully Enhanced</h3>
+                    <p id="successful-images">0</p>
+                </div>
+                <div class="stat-box">
+                    <h3>Failed</h3>
+                    <p id="failed-images">0</p>
+                </div>
+                <div class="stat-box">
+                    <h3>Total Time</h3>
+                    <p id="total-time">0s</p>
+                </div>
+                <div class="stat-box">
+                    <h3>Average Time</h3>
+                    <p id="avg-time">0s</p>
+                </div>
+            </div>
+            
+            <div class="results-table-container">
+                <h3 class="section-title">
+                    <i class="fas fa-list"></i> Detailed Results
+                </h3>
+                <table id="results-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Image File</th>
+                            <th>Status</th>
+                            <th>Processing Time</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-tbody">
+                        <!-- Results will be added here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div id="status-message" class="status-message"></div>
+    </div>
+    
+    <div class="loading-spinner" id="loading-spinner">
+        <div class="spinner"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get DOM elements
+            const batchForm = document.getElementById('batch-form');
+            const inputFolderInput = document.getElementById('input-folder');
+            const outputFolderInput = document.getElementById('output-folder');
+            const processButton = document.getElementById('process-button');
+            const resultsSection = document.getElementById('results-section');
+            const totalImagesEl = document.getElementById('total-images');
+            const successfulImagesEl = document.getElementById('successful-images');
+            const failedImagesEl = document.getElementById('failed-images');
+            const totalTimeEl = document.getElementById('total-time');
+            const avgTimeEl = document.getElementById('avg-time');
+            const resultsTableBody = document.getElementById('results-tbody');
+            const statusMessage = document.getElementById('status-message');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            
+            // Handle form submission
+            batchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get form values
+                const inputFolder = inputFolderInput.value.trim();
+                const outputFolder = outputFolderInput.value.trim();
+                
+                // Disable the button and show loading
+                processButton.disabled = true;
+                processButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                loadingSpinner.style.display = 'flex';
+                
+                // Send the batch process request
+                fetch('/batch-process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        input_folder: inputFolder,
+                        output_folder: outputFolder
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading spinner
+                    loadingSpinner.style.display = 'none';
+                    
+                    // Re-enable the button
+                    processButton.disabled = false;
+                    processButton.innerHTML = '<i class="fas fa-magic"></i> Process Images';
+                    
+                    if (data.error) {
+                        showStatusMessage(data.error, 'error');
+                        return;
+                    }
+                    
+                    // Display results with animation
+                    showResults(data);
+                })
+                .catch(error => {
+                    // Hide loading spinner
+                    loadingSpinner.style.display = 'none';
+                    
+                    console.error('Error:', error);
+                    showStatusMessage('An error occurred during batch processing.', 'error');
+                    
+                    // Re-enable the button
+                    processButton.disabled = false;
+                    processButton.innerHTML = '<i class="fas fa-magic"></i> Process Images';
+                });
+            });
+            
+            // Function to display results
+            function showResults(data) {
+                // Show results section with animation
+                resultsSection.style.display = 'block';
+                resultsSection.style.opacity = 0;
+                setTimeout(() => {
+                    resultsSection.style.opacity = 1;
+                }, 100);
+                
+                // Update statistics with animation
+                animateCounter(totalImagesEl, 0, data.total_images);
+                animateCounter(successfulImagesEl, 0, data.successful);
+                animateCounter(failedImagesEl, 0, data.failed);
+                
+                // Set time values
+                totalTimeEl.textContent = formatTime(data.total_processing_time);
+                avgTimeEl.textContent = formatTime(data.average_processing_time);
+                
+                // Clear previous results
+                resultsTableBody.innerHTML = '';
+                
+                // Add rows to the table with staggered animation
+                data.results.forEach((result, index) => {
+                    const row = document.createElement('tr');
+                    row.style.opacity = 0;
+                    
+                    // ID column
+                    const idCell = document.createElement('td');
+                    idCell.textContent = result.id;
+                    row.appendChild(idCell);
+                    
+                    // Input file column
+                    const inputCell = document.createElement('td');
+                    inputCell.textContent = result.input_path.split('/').pop(); // Show only filename
+                    inputCell.title = result.input_path; // Show full path on hover
+                    row.appendChild(inputCell);
+                    
+                    // Status column
+                    const statusCell = document.createElement('td');
+                    statusCell.textContent = result.success ? 'Success' : 'Failed';
+                    statusCell.className = result.success ? 'success-text' : 'error-text';
+                    row.appendChild(statusCell);
+                    
+                    // Processing time column
+                    const timeCell = document.createElement('td');
+                    timeCell.textContent = formatTime(result.processing_time);
+                    row.appendChild(timeCell);
+                    
+                    // Action column
+                    const actionCell = document.createElement('td');
+                    if (result.success) {
+                        const viewLink = document.createElement('a');
+                        viewLink.href = result.output_path;
+                        viewLink.innerHTML = '<i class="fas fa-eye"></i> View';
+                        viewLink.target = '_blank';
+                        viewLink.className = 'action-link';
+                        actionCell.appendChild(viewLink);
+                    } else {
+                        actionCell.textContent = 'N/A';
+                    }
+                    row.appendChild(actionCell);
+                    
+                    resultsTableBody.appendChild(row);
+                    
+                    // Fade in rows with staggered delay
+                    setTimeout(() => {
+                        row.style.opacity = 1;
+                        row.style.transition = 'opacity 0.3s ease-in-out';
+                    }, 100 + index * 50);
+                });
+                
+                // Scroll to results
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+                
+                // Show success message
+                showStatusMessage('Batch processing completed successfully!', 'success');
+            }
+            
+            // Helper function to animate counters
+            function animateCounter(element, start, end) {
+                const duration = 1000;
+                const frameDuration = 1000/60;
+                const totalFrames = Math.round(duration / frameDuration);
+                let frame = 0;
+                
+                const counter = setInterval(() => {
+                    frame++;
+                    const progress = frame / totalFrames;
+                    const currentCount = Math.round(start + (end - start) * progress);
+                    
+                    if (progress >= 1) {
+                        clearInterval(counter);
+                        element.textContent = end;
+                    } else {
+                        element.textContent = currentCount;
+                    }
+                }, frameDuration);
+            }
+            
+            // Helper function to format time
+            function formatTime(seconds) {
+                if (seconds < 1) {
+                    return (seconds * 1000).toFixed(0) + 'ms';
+                } else if (seconds < 60) {
+                    return seconds.toFixed(2) + 's';
+                } else {
+                    const minutes = Math.floor(seconds / 60);
+                    const remainingSeconds = seconds % 60;
+                    return minutes + 'm ' + remainingSeconds.toFixed(0) + 's';
+                }
+            }
+            
+            // Helper function to show status messages
+            function showStatusMessage(message, type) {
+                statusMessage.textContent = message;
+                statusMessage.className = 'status-message ' + type;
+                
+                // Add animation
+                statusMessage.style.animation = 'fadeIn 0.3s ease-in-out';
+                
+                // Reset animation after it completes
+                setTimeout(() => {
+                    statusMessage.style.animation = '';
+                }, 300);
+                
+                // Hide the message after 5 seconds for success/info messages
+                if (type === 'success' || type === 'info') {
+                    setTimeout(() => {
+                        fadeOut(statusMessage);
+                    }, 5000);
+                }
+            }
+            
+            // Helper function to fade out an element
+            function fadeOut(element) {
+                element.style.opacity = '1';
+                
+                (function fade() {
+                    if ((element.style.opacity -= 0.1) < 0) {
+                        element.style.display = 'none';
+                    } else {
+                        requestAnimationFrame(fade);
+                    }
+                })();
+            }
+        });
+    </script>
+</body>
+</html>
