@@ -70,3 +70,7 @@ Open your web browser and navigate to: http://localhost:5000
 - PyTorch - Deep learning framework
 
 ## 🔭 Project Outlook <br>
+
+![Image](https://github.com/user-attachments/assets/423d5c08-69a5-4822-a3da-b5bb5671059c)
+![Image](https://github.com/user-attachments/assets/fc599ef2-8f20-4086-8ca3-0d14060c14f6)
+![Image](https://github.com/user-attachments/assets/0045b739-4601-467c-82af-742cac5b8409)
